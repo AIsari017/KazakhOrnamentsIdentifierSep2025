@@ -28,16 +28,17 @@ def load_class_names():
         return None  # fall back to numeric labels
 
 def preprocess(img: Image.Image) -> np.ndarray:
-    if img.mode != "RGB":
-        img = img.convert("RGB")
+    img = img.convert("RGB")  
+    
+    # resize to the same size as training
     img = img.resize(IMAGE_SIZE)
+
+    # convert to array
     x = tf.keras.utils.img_to_array(img)
 
-    # IMPORTANT: use the SAME preprocess you trained with
-    # If you trained with EfficientNetB0:
+    # use the same preprocessing as during training (EfficientNetB0)
     x = tf.keras.applications.efficientnet.preprocess_input(x)
 
-    # shape -> (1, H, W, 3)
     return np.expand_dims(x, axis=0)
 
 def softmax(x):
