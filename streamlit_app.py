@@ -34,11 +34,16 @@ def load_class_names():
         return None  # fall back to numeric labels
 
 def preprocess(img: Image.Image) -> np.ndarray:
+    st.write("Original image size:", img.size)
+    st.write("Original image mode:", img.mode)
+    
     img = img.convert('RGB')
+    st.write("After RGB conversion mode:", img.mode)
     
     target_size = IMAGE_SIZE
     ratio = min(target_size[0] / img.size[0], target_size[1] / img.size[1])
     new_size = tuple(int(dim * ratio) for dim in img.size)
+    st.write("Resizing to maintain aspect ratio:", new_size)
     
     img = img.resize(new_size, Image.Resampling.LANCZOS)
     
@@ -46,14 +51,24 @@ def preprocess(img: Image.Image) -> np.ndarray:
     offset = ((target_size[0] - new_size[0]) // 2,
              (target_size[1] - new_size[1]) // 2)
     new_img.paste(img, offset)
+    st.write("Final image size after padding:", new_img.size)
     
     x = np.array(new_img)
+    st.write("NumPy array shape before expansion:", x.shape)
     
     if x.shape != (*IMAGE_SIZE, 3):
         raise ValueError(f"Unexpected image shape after preprocessing: {x.shape}")
     
     x = np.expand_dims(x, axis=0)
+    st.write("NumPy array shape after expansion:", x.shape)
+    
     x = tf.keras.applications.efficientnet.preprocess_input(x)
+    st.write("Value range after preprocessing:", 
+            f"min={np.min(x):.2f}, max={np.max(x):.2f}, mean={np.mean(x):.2f}")
+    
+    # Display sample of processed image
+    st.write("Preview of processed image values:")
+    st.write(x[0, 0:3, 0:3, :])  # Show top-left 3x3 pixel values
     
     return x
 
