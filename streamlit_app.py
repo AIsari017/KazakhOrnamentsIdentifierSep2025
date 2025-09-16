@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import streamlit as st
 import tensorflow as tf
+import os
 
 # ----- CONFIG -----
 IMAGE_SIZE = (224, 224)  
@@ -16,6 +17,11 @@ st.title("Ornament Classifier")
 # ----- HELPERS -----
 @st.cache_resource(show_spinner=True)
 def load_model():
+    if os.path.exists(MODEL_PATH):
+        print(f"Model file size: {os.path.getsize(MODEL_PATH)} bytes")
+        print(f"Model file modified: {os.path.getmtime(MODEL_PATH)}")
+    else:
+        print(f"Model file {MODEL_PATH} does not exist!")
     model = tf.keras.models.load_model(MODEL_PATH)
     return model
 
