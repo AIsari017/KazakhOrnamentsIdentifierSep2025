@@ -34,25 +34,20 @@ def load_class_names():
         return None  # fall back to numeric labels
 
 def preprocess(img: Image.Image) -> np.ndarray:
-    # ensure RGB conversion (this should already work, but let's be explicit)
-    if img.mode != 'RGB':
-        img = img.convert("RGB")
+    img = img.convert("RGB")
     
-    # verify the image has 3 channels after conversion
-    img_array = np.array(img)
-    if len(img_array.shape) == 2:  # still grayscale somehow
-        img_array = np.stack([img_array] * 3, axis=-1)
-        img = Image.fromarray(img_array.astype('uint8'))
+    img = img.resize(IMAGE_SIZE, Image.Resampling.LANCZOS)
     
-    # resize to the same size as training
-    img = img.resize(IMAGE_SIZE)
-    
+    # Convert to array - will be shape (224, 224, 3)
     x = tf.keras.utils.img_to_array(img)
-    print(f"Image shape before preprocessing: {x.shape}")
+    print(f"Image shape after conversion: {x.shape}")
     
     x = tf.keras.applications.efficientnet.preprocess_input(x)
     
-    return np.expand_dims(x, axis=0)
+    x = np.expand_dims(x, axis=0)
+    print(f"Final preprocessed shape: {x.shape}")
+    
+    return x
 
 def softmax(x):
     e = np.exp(x - np.max(x, axis=-1, keepdims=True))
