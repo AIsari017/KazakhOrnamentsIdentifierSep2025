@@ -36,9 +36,18 @@ def load_class_names():
 def preprocess(img: Image.Image) -> np.ndarray:
     img = img.convert('RGB')
     
-    img = img.resize(IMAGE_SIZE, Image.Resampling.LANCZOS)
+    target_size = IMAGE_SIZE
+    ratio = min(target_size[0] / img.size[0], target_size[1] / img.size[1])
+    new_size = tuple(int(dim * ratio) for dim in img.size)
     
-    x = np.array(img)
+    img = img.resize(new_size, Image.Resampling.LANCZOS)
+    
+    new_img = Image.new('RGB', target_size, (255, 255, 255))
+    offset = ((target_size[0] - new_size[0]) // 2,
+             (target_size[1] - new_size[1]) // 2)
+    new_img.paste(img, offset)
+    
+    x = np.array(new_img)
     
     if x.shape != (*IMAGE_SIZE, 3):
         raise ValueError(f"Unexpected image shape after preprocessing: {x.shape}")
@@ -46,7 +55,6 @@ def preprocess(img: Image.Image) -> np.ndarray:
     x = np.expand_dims(x, axis=0)
     x = tf.keras.applications.efficientnet.preprocess_input(x)
     
-    print(f"Final preprocessed shape: {x.shape}")
     return x
 
 def softmax(x):
@@ -65,7 +73,7 @@ if example:
 
 if uploaded:
     image = Image.open(uploaded)
-    st.image(image, caption="Uploaded", use_container_width=True)
+    st.image(image, caption="Uploaded", width='stretch') 
 
     with st.spinner("Loading model & predicting..."):
         model = load_model()
