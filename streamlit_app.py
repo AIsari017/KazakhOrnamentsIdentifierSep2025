@@ -34,12 +34,13 @@ def load_class_names():
         return None  # fall back to numeric labels
 
 def preprocess(img: Image.Image) -> np.ndarray:
-    img = img.convert("RGB")
+    img = img.convert("RGB")  # Ensure 3 channels
     
     img = img.resize(IMAGE_SIZE, Image.Resampling.LANCZOS)
     
     # Convert to array - will be shape (224, 224, 3)
     x = tf.keras.utils.img_to_array(img)
+    x = tf.image.resize(x, IMAGE_SIZE)  # Ensure exact size
     print(f"Image shape after conversion: {x.shape}")
     
     x = tf.keras.applications.efficientnet.preprocess_input(x)
