@@ -34,20 +34,19 @@ def load_class_names():
         return None  # fall back to numeric labels
 
 def preprocess(img: Image.Image) -> np.ndarray:
-    img = img.convert("RGB")  # Ensure 3 channels
+    img = img.convert('RGB')
     
     img = img.resize(IMAGE_SIZE, Image.Resampling.LANCZOS)
     
-    # Convert to array - will be shape (224, 224, 3)
-    x = tf.keras.utils.img_to_array(img)
-    x = tf.image.resize(x, IMAGE_SIZE)  # Ensure exact size
-    print(f"Image shape after conversion: {x.shape}")
+    x = np.array(img)
     
-    x = tf.keras.applications.efficientnet.preprocess_input(x)
+    if x.shape != (*IMAGE_SIZE, 3):
+        raise ValueError(f"Unexpected image shape after preprocessing: {x.shape}")
     
     x = np.expand_dims(x, axis=0)
-    print(f"Final preprocessed shape: {x.shape}")
+    x = tf.keras.applications.efficientnet.preprocess_input(x)
     
+    print(f"Final preprocessed shape: {x.shape}")
     return x
 
 def softmax(x):
